@@ -25,7 +25,7 @@ if st.button("변환"      ):
         # TTS 생성
         speech = client.audio.speech.create(
             model= "gpt-4o-mini-tts"    ,
-            voice=  girl   ,
+            voice=  "girl"   ,
             input=(text)
         )
         audio_bytes =64
