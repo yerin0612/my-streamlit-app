@@ -4,8 +4,8 @@ from email.message import EmailMessage
 from email.policy import SMTP
 from openai import OpenAI
 
-st.set_page_config(page_title="에이블 회의 비서", page_icon="🎙️")
-st.title("🎙️AI 에이블 회의 비서")
+st.set_page_config(page_title="AI비서 에이블", page_icon="🎙️")
+st.title("🎙️AI비서 에이블")
 st.write("회의록과 음성 요청을 입력하면 회의 요약과 담당 업무를 음성으로 알려드려요.")
 
 # API 키는 Streamlit Secrets에 저장
