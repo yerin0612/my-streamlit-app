@@ -108,8 +108,8 @@ with st.sidebar:
         ])
 
           csv_data = schedule_df.to_csv(
-            index=False,
-            encoding="utf-8-sig"
+              index=False,
+              encoding="utf-8-sig"
         )
 
           st.download_button(
@@ -118,7 +118,7 @@ with st.sidebar:
               file_name="에이블_전체일정.csv",
               mime="text/csv"
         )
-      else:
+    else:
           st.caption("다운로드할 일정이 없어요.")
 
 
