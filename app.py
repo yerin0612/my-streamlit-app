@@ -204,6 +204,7 @@ deadline은 기한으로 작성하세요. 기한이 없으면 "미정"이라고 
                 model="gpt-4o-mini",
                 instructions=instructions,
                 input=f"""
+                아래 내용을 분석하고 json 객체로만 답변해 주세요.
 [김 대리의 요청]
 {request_text}
 
