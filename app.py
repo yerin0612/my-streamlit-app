@@ -53,10 +53,22 @@ with st.sidebar:
     ]
 
     if monthly_schedules:
-        for item in sorted(monthly_schedules, key=lambda x: x["date"]):
-            st.write(f"**{item['date'].strftime('%m/%d')}** — {item['title']}")
-    else:
-        st.caption("등록된 일정이 없어요.")
+    for i, item in enumerate(
+        sorted(monthly_schedules, key=lambda x: x["date"])
+    ):
+        col1, col2 = st.columns([4, 1])
+
+        with col1:
+            st.write(
+                f"**{item['date'].strftime('%m/%d')}** — {item['title']}"
+            )
+
+        with col2:
+            if st.button("삭제", key=f"delete_{i}_{item['date']}_{item['title']}"):
+                st.session_state.schedules.remove(item)
+                st.rerun()
+else:
+    st.caption("등록된 일정이 없어요.")
 
 # 회의록 업로드
 meeting_file = st.file_uploader(
