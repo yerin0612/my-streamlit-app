@@ -4,6 +4,8 @@ from datetime import date
 from email.message import EmailMessage
 from email.policy import SMTP
 
+import pandas as pd
+
 import streamlit as st
 from openai import OpenAI
 
@@ -92,6 +94,32 @@ with st.sidebar:
                     st.rerun()
     else:
         st.caption("등록된 일정이 없어요.")
+
+    if st.session_state.schedules:
+          schedule_df = pd.DataFrame([
+            {
+                "날짜": item["date"].strftime("%Y-%m-%d"),
+                "일정": item["title"]
+            }
+              for item in sorted(
+                  st.session_state.schedules,
+                  key=lambda x: x["date"]
+            )
+        ])
+
+          csv_data = schedule_df.to_csv(
+            index=False,
+            encoding="utf-8-sig"
+        )
+
+          st.download_button(
+              label="전체 일정 CSV 다운로드",
+              data=csv_data,
+              file_name="에이블_전체일정.csv",
+              mime="text/csv"
+        )
+      else:
+          st.caption("다운로드할 일정이 없어요.")
 
 
 # ── 회의록과 요청 입력 ──────────────────────────────────
