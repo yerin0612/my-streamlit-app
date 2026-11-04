@@ -340,6 +340,8 @@ deadline은 기한으로 작성하세요. 기한이 없으면 "미정"이라고 
               )
         else:
                 st.error("음성 파일이 비어 있어요.")
+    except Exception as e:
+        st.error(f"음성 생성에 실패했어요: {e}")
 
     # 이메일 발송
     if send_email_option:
