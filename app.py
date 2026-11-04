@@ -3,6 +3,8 @@ from datetime import date
 from email.message import EmailMessage
 from email.policy import SMTP
 
+import json
+
 import streamlit as st
 from openai import OpenAI
 
@@ -152,10 +154,12 @@ if st.button("요약하고 음성으로 듣기", type="primary"):
             response = client.responses.create(
                 model="gpt-4o-mini",
                 instructions=(
-                    "당신은 김 대리의 개인 비서 에이블입니다. "
-                    "회의 내용을 간결하게 요약하고, 김 대리에게 배정된 업무가 있으면 "
-                    "담당 업무와 기한을 구분해 자세히 정리하세요. "
-                    "회의록에 없는 내용은 추측하지 마세요."
+                    "회의 내용을 정리하는 개인 비서입니다. "
+                    "회의록에 없는 내용은 추측하지 마세요. "
+                    "반드시 아래 JSON 형식으로만 답하세요. "
+                    '{"summary":"회의 요약과 담당 업무",'
+                    '"schedules":[{"date":"YYYY-MM-DD","title":"일정 이름"}]} '
+                    "날짜가 확실하지 않은 일정은 schedules에 넣지 마세요."
                 ),
                 input=f"""
 [김 대리의 요청]
