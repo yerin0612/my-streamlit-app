@@ -290,36 +290,8 @@ deadline은 기한으로 작성하세요. 기한이 없으면 "미정"이라고 
     if added_count:
         st.success(f"날짜가 확실한 일정 {added_count}개를 자동으로 추가했어요.")
 
-    # 음성 답변 만들기
-    answer_parts = []
-
-    if result.get("summary"):
-        answer_parts.append("회의 요약. " + result["summary"])
-
-    if result.get("key_points"):
-        answer_parts.append(
-            "핵심 안건. " + " ".join(result["key_points"])
-        )
-
-    if result.get("decisions"):
-        answer_parts.append(
-            "결정 사항. " + " ".join(result["decisions"])
-        )
-
-    if result.get("my_tasks"):
-        task_texts = []
-        for task in result["my_tasks"]:
-            task_texts.append(
-                f"{task.get('task', '')}. "
-                f"{task.get('details', '')}. "
-                f"기한은 {task.get('deadline', '미정')}."
-            )
-        answer_parts.append("김 대리 담당 업무. " + " ".join(task_texts))
-
-    answer = " ".join(answer_parts)
-
-    if not answer.strip():
-        answer = "회의록에서 요약할 내용을 찾지 못했어요."
+        # 음성 답변 만들기
+    st.session_state.latest_audio = None
 
     try:
         with st.spinner("답변 음성을 만들고 있어요..."):
@@ -331,17 +303,15 @@ deadline은 기한으로 작성하세요. 기한이 없으면 "미정"이라고 
             audio_bytes = speech.read()
 
         if audio_bytes:
-                st.subheader("에이블의 음성 답변")
-                st.audio(audio_bytes, format="audio/mpeg")
-                st.download_button(
-                   "음성 파일 다운로드",
-                    data=audio_bytes,
-                    file_name="회의요약.mp3",
-                    mime="audio/mpeg"
-                )
-                
+            # 화면 새로고침 후에도 재생할 수 있도록 세션에 저장
+            st.session_state.latest_audio = audio_bytes
+        else:
+            st.error("음성 파일이 비어 있어요.")
+
     except Exception as e:
         st.error(f"음성 생성에 실패했어요: {e}")
+
+    # 이메일 발송
 
     # 이메일 발송
     if send_email_option:
