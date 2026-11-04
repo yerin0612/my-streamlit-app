@@ -1,22 +1,27 @@
 import smtplib
 import streamlit as st
+from datetime import date
 from email.message import EmailMessage
 from email.policy import SMTP
 from openai import OpenAI
 
+# 페이지 설정
 st.set_page_config(page_title="AI비서 에이블", page_icon="🎙️")
-st.title("🎙️AI비서 에이블")
+st.title("🎙️ AI비서 에이블")
 st.write("회의록과 음성 요청을 입력하면 회의 요약과 담당 업무를 음성으로 알려드려요.")
 
-# API 키는 Streamlit Secrets에 저장
+# 일정 목록을 먼저 초기화
+if "schedules" not in st.session_state:
+    st.session_state.schedules = []
+
+# OpenAI API 키는 Streamlit Secrets 또는 환경 변수에서 불러옵니다.
 client = OpenAI()
 
-
-# 사이드바: 일정 추가
+# 사이드바: 일정 추가 및 월별 조회
 with st.sidebar:
     st.header("📅 일정 모음")
 
-    schedule_date = st.date_input("날짜 선택")
+    schedule_date = st.date_input("날짜 선택", value=date.today())
     schedule_title = st.text_input("일정 이름")
 
     if st.button("일정 추가"):
@@ -31,14 +36,17 @@ with st.sidebar:
 
     st.divider()
 
-    # 보고 싶은 연도와 월 선택
-    months = [f"{year}-{month:02d}" for year in range(2025, 2031)
-              for month in range(1, 13)]
-    selected_month = st.selectbox("월별 일정 보기", months)
+    # 등록된 일정의 월을 목록으로 구성
+    schedule_months = {
+        item["date"].strftime("%Y-%m")
+        for item in st.session_state.schedules
+    }
+    schedule_months.add(date.today().strftime("%Y-%m"))
+    months = sorted(schedule_months)
 
+    selected_month = st.selectbox("월별 일정 보기", months)
     st.subheader(f"🗓️ {selected_month} 일정")
 
-    # 선택한 달에 해당하는 일정만 표시
     monthly_schedules = [
         item for item in st.session_state.schedules
         if item["date"].strftime("%Y-%m") == selected_month
@@ -48,7 +56,7 @@ with st.sidebar:
         for item in sorted(monthly_schedules, key=lambda x: x["date"]):
             st.write(f"**{item['date'].strftime('%m/%d')}** — {item['title']}")
     else:
-        st.caption("등록된 일정이 없어요.")  
+        st.caption("등록된 일정이 없어요.")
 
 # 회의록 업로드
 meeting_file = st.file_uploader(
@@ -68,7 +76,7 @@ typed_request = st.text_area(
     placeholder="예: 미팅 내용을 요약하고, 나에게 배정된 업무를 자세히 알려줘."
 )
 
-# 이메일 발송 선택
+# 이메일 발송 설정
 send_email_option = st.checkbox("결과를 이메일로도 받기")
 recipient = st.text_input(
     "받는 사람 이메일",
@@ -81,81 +89,114 @@ if st.button("요약하고 음성으로 듣기", type="primary"):
         st.error("회의록 파일을 먼저 올려주세요.")
         st.stop()
 
-    meeting_text = meeting_file.getvalue().decode("utf-8")
-
-    # 음성 파일이 있으면 음성을 텍스트로 변환
     request_text = typed_request.strip()
 
+    # 음성 파일이 있으면 음성 내용을 요청으로 사용
     if audio_file is not None:
-        with st.spinner("음성을 텍스트로 변환하고 있어요..."):
-            transcript = client.audio.transcriptions.create(
-                model="gpt-4o-mini-transcribe",
-                file=audio_file
-            )
-            request_text = transcript.text
+        try:
+            with st.spinner("음성을 텍스트로 변환하고 있어요..."):
+                transcript = client.audio.transcriptions.create(
+                    model="gpt-4o-mini-transcribe",
+                    file=audio_file
+                )
+                request_text = transcript.text.strip()
 
-        st.subheader("음성에서 추출한 요청")
-        st.write(request_text)
+            st.subheader("음성에서 추출한 요청")
+            st.write(request_text)
+        except Exception as e:
+            st.error(f"음성 변환에 실패했어요: {e}")
+            st.stop()
 
     if not request_text:
         st.error("음성 파일을 올리거나 요청 내용을 직접 입력해주세요.")
         st.stop()
 
-    # 회의록과 요청을 바탕으로 답변 생성
-    with st.spinner("회의 내용을 정리하고 있어요..."):
-        response = client.responses.create(
-            model="gpt-4o-mini",
-            instructions=(
-                "당신은 김 대리의 개인 비서 에이블입니다. "
-                "회의 내용을 간결하게 요약하고, 김 대리에게 배정된 업무가 있으면 "
-                "담당 업무와 기한을 구분해 자세히 정리하세요. "
-                "회의록에 없는 내용은 추측하지 마세요."
-            ),
-            input=f"""
+    # 회의록 읽기
+    try:
+        meeting_text = meeting_file.getvalue().decode("utf-8")
+    except UnicodeDecodeError:
+        st.error("회의록 파일을 UTF-8 형식으로 저장한 뒤 다시 올려주세요.")
+        st.stop()
+
+    # 회의 내용 요약
+    try:
+        with st.spinner("회의 내용을 정리하고 있어요..."):
+            response = client.responses.create(
+                model="gpt-4o-mini",
+                instructions=(
+                    "당신은 김 대리의 개인 비서 에이블입니다. "
+                    "회의 내용을 간결하게 요약하고, 김 대리에게 배정된 업무가 있으면 "
+                    "담당 업무와 기한을 구분해 자세히 정리하세요. "
+                    "회의록에 없는 내용은 추측하지 마세요."
+                ),
+                input=f"""
 [김 대리의 요청]
 {request_text}
 
 [회의록]
 {meeting_text}
 """
-        )
-        answer = response.output_text
+            )
+            answer = response.output_text
+
+        st.subheader("회의 요약 및 담당 업무")
+        st.write(answer)
+
+    except Exception as e:
+        st.error(f"회의 내용 정리에 실패했어요: {e}")
+        st.stop()
 
     # 답변을 음성으로 변환
-    with st.spinner("답변 음성을 만들고 있어요..."):
-        speech = client.audio.speech.create(
-            model="gpt-4o-mini-tts",
-            voice="alloy",
-            input=answer
+    try:
+        with st.spinner("답변 음성을 만들고 있어요..."):
+            speech = client.audio.speech.create(
+                model="gpt-4o-mini-tts",
+                voice="alloy",
+                input=answer
+            )
+            audio_bytes = speech.content
+
+        st.subheader("에이블의 음성 답변")
+        st.audio(audio_bytes, format="audio/mpeg")
+
+        st.download_button(
+            "음성 파일 다운로드",
+            data=audio_bytes,
+            file_name="회의요약.mp3",
+            mime="audio/mpeg"
         )
-        audio_bytes = speech.content
-
-    st.subheader("에이블의 음성 답변")
-    st.audio(audio_bytes, format="audio/mpeg")
-
-    st.download_button(
-        "음성 파일 다운로드",
-        data=audio_bytes,
-        file_name="회의요약.mp3",
-        mime="audio/mpeg"
-    )
+    except Exception as e:
+        st.error(f"음성 생성에 실패했어요: {e}")
 
     # 선택한 경우 이메일 발송
     if send_email_option:
-        try:
-            sender = st.secrets["GMAIL_ADDRESS"]
-            app_password = st.secrets["GMAIL_APP_PASSWORD"]
+        if not recipient.strip():
+            st.warning("받는 사람 이메일을 입력해 주세요.")
+        else:
+            try:
+                sender = st.secrets["GMAIL_ADDRESS"]
+                app_password = st.secrets["GMAIL_APP_PASSWORD"]
 
-            message = EmailMessage(policy=SMTP)
-            message["Subject"] = "미팅 내용 요약 및 담당 업무"
-            message["From"] = sender
-            message["To"] = recipient
-            message.set_content(answer, charset="utf-8")
+                message = EmailMessage(policy=SMTP)
+                message["Subject"] = "미팅 내용 요약 및 담당 업무"
+                message["From"] = sender
+                message["To"] = recipient.strip()
+                message.set_content(answer, charset="utf-8")
 
-            with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-                server.login(sender, app_password)
-                server.sendmail(sender, [recipient], message.as_bytes())
+                with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+                    server.login(sender, app_password)
+                    server.sendmail(
+                        sender,
+                        [recipient.strip()],
+                        message.as_bytes()
+                    )
 
-            st.success(f"{recipient} 주소로 이메일을 보냈어요.")
-        except Exception as e:
-            st.error(f"이메일 발송에 실패했어요: {e}")
+                st.success(f"{recipient.strip()} 주소로 이메일을 보냈어요.")
+            except KeyError:
+                st.error(
+                    "이메일 설정을 찾을 수 없어요. "
+                    "Streamlit Secrets에 GMAIL_ADDRESS와 "
+                    "GMAIL_APP_PASSWORD를 등록해 주세요."
+                )
+            except Exception as e:
+                st.error(f"이메일 발송에 실패했어요: {e}")
