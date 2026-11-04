@@ -172,6 +172,29 @@ if st.button("요약하고 음성으로 듣기", type="primary"):
             result = json.loads(response.output_text)
             answer = result["summary"]
             extracted_schedules = result["schedules"]
+        added_count = 0
+
+        for item in extracted_schedules:
+            try:
+                schedule_date = date.fromisoformat(item["date"])
+                schedule_title = item["title"].strip()
+
+                if schedule_title:
+                    new_schedule = {
+                        "date": schedule_date,
+                        "title": schedule_title
+                    }
+
+                    # 같은 날짜와 일정 이름이 이미 있으면 중복 추가하지 않기
+                    if new_schedule not in st.session_state.schedules:
+                        st.session_state.schedules.append(new_schedule)
+                        added_count += 1
+
+            except (KeyError, ValueError, TypeError):
+                continue
+
+        if added_count:
+            st.success(f"회의록에서 일정 {added_count}개를 추가했어요.")
 
         st.subheader("회의 요약 및 담당 업무")
         st.write(answer)
