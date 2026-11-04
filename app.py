@@ -3,7 +3,7 @@ from datetime import date
 from email.message import EmailMessage
 from email.policy import SMTP
 
-import json
+import os, base64, json, requests
 
 import streamlit as st
 from openai import OpenAI
@@ -169,7 +169,9 @@ if st.button("요약하고 음성으로 듣기", type="primary"):
 {meeting_text}
 """
             )
-            answer = response.output_text
+            result = json.loads(response.output_text)
+            answer = result["summary"]
+            extracted_schedules = result["schedules"]
 
         st.subheader("회의 요약 및 담당 업무")
         st.write(answer)
