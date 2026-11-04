@@ -330,7 +330,7 @@ deadline은 기한으로 작성하세요. 기한이 없으면 "미정"이라고 
             )
             audio_bytes = speech.read()
 
-            if audio_bytes:
+        if audio_bytes:
                 st.audio(audio_bytes, format="audio/mpeg")
                 st.download_button(
                    "음성 파일 다운로드",
@@ -338,7 +338,7 @@ deadline은 기한으로 작성하세요. 기한이 없으면 "미정"이라고 
                     file_name="회의요약.mp3",
                     mime="audio/mpeg"
               )
-            else:
+        else:
                 st.error("음성 파일이 비어 있어요.")
 
     # 이메일 발송
