@@ -93,7 +93,8 @@ def format_docs(docs):
 def get_chain(api_key):
     embedding = OpenAIEmbeddings(model="text-embedding-3-small", api_key=api_key)
     vectorstore = Chroma(
-        collection_name="hr_rules",
+        # 노트북의 rag_pipeline()에서 만든 컬렉션 이름과 같아야 합니다.
+        collection_name="aivle_docs",
         embedding_function=embedding,
         persist_directory="chroma_db",
     )
@@ -195,7 +196,7 @@ elif page == "선배 후기":
 elif page == "백서 챗봇":
     st.markdown('<div class="hero"><div class="eyebrow">ASK THE WHITEPAPER</div><div class="hero-title">백서에 물어보세요.</div><div class="hero-copy">백서 내용을 검색해 근거에 맞춰 답변합니다. 문서에서 확인할 수 없는 내용은 모른다고 안내합니다.</div></div>', unsafe_allow_html=True)
     with st.expander("챗봇 연결 안내"):
-        st.write("Chroma 컬렉션 `hr_rules`와 `chroma_db` 폴더에 백서 임베딩이 준비되어 있어야 합니다. Streamlit Secrets에 OpenAI API 키를 등록하세요.")
+        st.write("노트북의 RAG 파이프라인이 만든 Chroma 컬렉션 `aivle_docs`와 `chroma_db` 폴더에 백서 임베딩이 준비되어 있어야 합니다. Streamlit Secrets에 OpenAI API 키를 등록하세요.")
     if "messages" not in st.session_state:
         st.session_state.messages = []
     col1, col2 = st.columns([1, 5])
