@@ -258,7 +258,6 @@ if "indexed_files" not in st.session_state:
 with st.sidebar:
     # 로고 파일은 app.py와 같은 폴더에 aivle_logo.png 이름으로 넣어 주세요
 
-    st.caption("AIVLE School 학습 도우미")
     st.markdown("---")
 
     st.markdown("### 📎 PDF 자료 추가")
