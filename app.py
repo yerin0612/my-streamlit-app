@@ -248,9 +248,6 @@ if "indexed_files" not in st.session_state:
 # 사이드바
 # ─────────────────────────────────────────
 with st.sidebar:
-    st.markdown("## 📘 AIVLE 도우미")
-    st.caption("수업 자료를 찾아보고 질문해 보세요.")
-
     st.markdown("---")
     st.markdown("### 📎 자료 추가")
 
