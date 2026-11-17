@@ -257,8 +257,6 @@ if "indexed_files" not in st.session_state:
 # 사이드바
 with st.sidebar:
     # 로고 파일은 app.py와 같은 폴더에 aivle_logo.png 이름으로 넣어 주세요
-    if Path("aivle_logo.png").exists():
-        st.image("aivle_logo.png", width=170)
 
     st.caption("AIVLE School 학습 도우미")
     st.markdown("---")
