@@ -306,8 +306,8 @@ st.markdown(
     """
     <div class="hero">
         <div class="hero-kicker">KT AIVLE SCHOOL · STUDY ASSISTANT</div>
-        <h1>공부하다 막히면, 에이블에게 물어보세요 👋</h1>
-        <p>수업 자료를 바탕으로 개념과 코드를 함께 설명해 드릴게요.</p>
+        <h1>에이블에게 물어보세요 👋</h1>
+        <p>수업 자료를 바탕으로 함께 설명해 드릴게요.</p>
     </div>
     """,
     unsafe_allow_html=True,
