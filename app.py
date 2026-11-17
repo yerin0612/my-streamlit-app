@@ -18,7 +18,7 @@ st.set_page_config(
     st.image("aivle_logo.png", width=170),
     st.caption("AIVLE School 학습 도우미"),
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="expanded"
 )
 
 CHROMA_DIR = "chroma_db"
