@@ -14,13 +14,6 @@ from operator import itemgetter
 # ─────────────────────────────────────────
 # 페이지 설정
 # ─────────────────────────────────────────
-st.set_page_config(
-    page_title="AIVLE School 학습 도우미",
-    page_icon="📘",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
 with st.sidebar:
     st.image("aivle_logo.png", width=170)
     st.caption("AIVLE School 학습 도우미")
