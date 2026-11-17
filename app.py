@@ -15,6 +15,7 @@ from operator import itemgetter
 
 
 # 페이지 설정은 Streamlit 화면 명령보다 먼저 실행
+with st.sidebar:
     st.image("aivle_logo.png", width=170)
     st.caption("AIVLE School 학습 도우미")
 
